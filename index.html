@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ivy Homes — Pune Properties</title>
+<style>
+  :root {
+    --primary: #1a3c5e;
+    --accent: #e85d04;
+    --bg: #f8fafc;
+    --card-bg: #fff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --success: #16a34a;
+    --warning: #ca8a04;
+    --danger: #dc2626;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* NAV */
+  nav { background: var(--primary); color: #fff; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+  nav .logo { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.5px; }
+  nav .logo span { color: var(--accent); }
+  nav .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+  nav .nav-links a { color: #fff; text-decoration: none; font-size: 0.9rem; opacity: 0.85; transition: opacity 0.2s; cursor: pointer; }
+  nav .nav-links a:hover, nav .nav-links a.active { opacity: 1; border-bottom: 2px solid var(--accent); padding-bottom: 2px; }
+  nav .user-info { display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; }
+  nav .user-info .email { opacity: 0.8; }
+  nav .user-info button { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 0.3rem 0.75rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+  nav .user-info button:hover { background: rgba(255,255,255,0.25); }
+
+  /* PAGES */
+  .page { display: none; padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  /* LOGIN */
+  .login-wrap { min-height: calc(100vh - 56px); display: flex; align-items: center; justify-content: center; }
+  .login-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 2.5rem; width: 100%; max-width: 420px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+  .login-card h1 { font-size: 1.5rem; color: var(--primary); margin-bottom: 0.25rem; }
+  .login-card p { color: var(--muted); margin-bottom: 2rem; font-size: 0.9rem; }
+  .form-group { margin-bottom: 1rem; }
+  .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text); }
+  .form-group input, .form-group select { width: 100%; padding: 0.6rem 0.9rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; transition: border-color 0.2s; }
+  .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); }
+  .btn { width: 100%; padding: 0.7rem; background: var(--accent); color: #fff; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+  .btn:hover { background: #c44e02; }
+  .btn:disabled { background: #94a3b8; cursor: not-allowed; }
+  .error-msg { background: #fef2f2; border: 1px solid #fecaca; color: var(--danger); padding: 0.7rem 1rem; border-radius: 6px; font-size: 0.85rem; margin-bottom: 1rem; display: none; }
+
+  /* LISTINGS */
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: gap; gap: 1rem; }
+  .page-header h2 { font-size: 1.4rem; color: var(--primary); }
+  .filters { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-end; }
+  .filters .filter-group { display: flex; flex-direction: column; gap: 0.3rem; min-width: 120px; }
+  .filters label { font-size: 0.78rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .filters input, .filters select { padding: 0.5rem 0.7rem; border: 1px solid var(--border); border-radius: 5px; font-size: 0.9rem; }
+  .filters button { padding: 0.5rem 1.25rem; background: var(--primary); color: #fff; border: none; border-radius: 5px; cursor: pointer; font-size: 0.9rem; white-space: nowrap; height: fit-content; }
+  .filters button.reset { background: var(--muted); }
+
+  .listings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; }
+  .listing-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+  .listing-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+  .listing-card .card-img { height: 160px; background: linear-gradient(135deg, #1a3c5e22, #e85d0422); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; position: relative; }
+  .listing-card .card-img .badge { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--success); color: #fff; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600; }
+  .listing-card .card-img .badge.inactive { background: var(--muted); }
+  .listing-card .card-body { padding: 1rem; }
+  .listing-card .card-price { font-size: 1.2rem; font-weight: 700; color: var(--accent); margin-bottom: 0.3rem; }
+  .listing-card .card-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.25rem; }
+  .listing-card .card-meta { color: var(--muted); font-size: 0.82rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+  .listing-card .card-meta span { display: flex; align-items: center; gap: 0.2rem; }
+  .listing-card .card-actions { padding: 0.75rem 1rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem; }
+  .listing-card .card-actions button { flex: 1; padding: 0.4rem; font-size: 0.82rem; border-radius: 4px; cursor: pointer; border: 1px solid var(--border); background: var(--bg); }
+  .listing-card .card-actions button:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .listing-card .card-actions button.saved { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .pagination { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 2rem; padding: 1rem; }
+  .pagination button { padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; font-size: 0.85rem; background: var(--card-bg); }
+  .pagination button:hover { background: var(--primary); color: #fff; }
+  .pagination button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .results-count { color: var(--muted); font-size: 0.85rem; margin-bottom: 0.75rem; }
+
+  /* DETAIL */
+  .detail-back { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--primary); cursor: pointer; font-size: 0.9rem; margin-bottom: 1.25rem; text-decoration: none; }
+  .detail-back:hover { text-decoration: underline; }
+  .detail-hero { background: linear-gradient(135deg, #1a3c5e, #2d6a9f); border-radius: 12px; padding: 2rem; color: #fff; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; }
+  .detail-hero .price { font-size: 2rem; font-weight: 700; }
+  .detail-hero .address { opacity: 0.85; margin-top: 0.25rem; }
+  .detail-hero button { background: var(--accent); color: #fff; border: none; padding: 0.6rem 1.5rem; border-radius: 6px; cursor: pointer; font-size: 0.95rem; font-weight: 600; }
+  .detail-hero button:hover { background: #c44e02; }
+  .detail-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+  .detail-section { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; }
+  .detail-section h3 { font-size: 1rem; color: var(--primary); margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+  .detail-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .detail-spec { padding: 0.6rem; background: var(--bg); border-radius: 6px; }
+  .detail-spec .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .detail-spec .value { font-size: 0.95rem; font-weight: 600; margin-top: 0.15rem; }
+  .similar-cards { display: flex; flex-direction: column; gap: 0.75rem; }
+  .similar-card { padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; }
+  .similar-card:hover { background: var(--bg); }
+  .similar-card .s-price { font-weight: 700; color: var(--accent); }
+  .similar-card .s-meta { font-size: 0.8rem; color: var(--muted); }
+
+  /* SAVED */
+  .empty-state { text-align: center; padding: 4rem 2rem; color: var(--muted); }
+  .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+  .empty-state p { font-size: 1rem; }
+
+  /* RENTALS / PROJECTS */
+  .rentals-grid, .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem; }
+  .rental-card, .project-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; }
+  .rental-card .rent { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
+  .rental-card .rent-meta { color: var(--muted); font-size: 0.82rem; margin-top: 0.25rem; }
+  .rental-card h4 { margin: 0.5rem 0 0.25rem; font-size: 0.95rem; }
+  .project-card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .project-card .proj-price { color: var(--accent); font-weight: 600; font-size: 0.95rem; margin: 0.5rem 0; }
+  .project-status { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; }
+  .project-status.under { background: #fef3c7; color: #92400e; }
+  .project-status.ready { background: #dcfce7; color: #166534; }
+  .project-status.new { background: #ede9fe; color: #5b21b6; }
+  .spec-row { display: flex; gap: 1rem; font-size: 0.83rem; color: var(--muted); margin-top: 0.5rem; flex-wrap: wrap; }
+
+  /* INSIGHTS */
+  .insights-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+  .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; }
+  .stat-card .stat-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; }
+  .stat-card .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--primary); }
+  .stat-card .stat-sub { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
+  .findings-list { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; }
+  .finding { padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+  .finding:last-child { border-bottom: none; }
+  .finding .finding-title { font-weight: 600; font-size: 0.9rem; color: var(--text); margin-bottom: 0.25rem; }
+  .finding .finding-desc { font-size: 0.83rem; color: var(--muted); }
+  .tag { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 12px; font-size: 0.72rem; font-weight: 600; margin-right: 0.5rem; }
+  .tag.units { background: #fef3c7; color: #92400e; }
+  .tag.auth { background: #ede9fe; color: #5b21b6; }
+  .tag.dup { background: #e0f2fe; color: #0369a1; }
+  .tag.fraud { background: #fee2e2; color: #991b1b; }
+  .tag.missing { background: #f0fdf4; color: #166534; }
+  .tag.filter { background: #fdf4ff; color: #86198f; }
+  .tag.data { background: #fff7ed; color: #c2410c; }
+  .tag.pagination { background: #f0f9ff; color: #0c4a6e; }
+
+  /* LOADING */
+  .loading { text-align: center; padding: 3rem; color: var(--muted); }
+  .spinner { display: inline-block; width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--primary); color: #fff; padding: 0.75rem 1.25rem; border-radius: 8px; font-size: 0.9rem; z-index: 999; transform: translateY(100px); opacity: 0; transition: all 0.3s; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { background: var(--success); }
+  .toast.error { background: var(--danger); }
+
+  @media (max-width: 768px) {
+    .detail-grid { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav" style="display:none">
+  <div class="logo">ivy<span>.</span>homes</div>
+  <div class="nav-links">
+    <a onclick="showPage('listings')" data-page="listings">Browse</a>
+    <a onclick="showPage('rentals')" data-page="rentals">Rentals</a>
+    <a onclick="showPage('projects')" data-page="projects">Projects</a>
+    <a onclick="showPage('saved')" data-page="saved">Saved ♥</a>
+    <a onclick="showPage('insights')" data-page="insights">Insights</a>
+  </div>
+  <div class="user-info">
+    <span class="email" id="nav-email"></span>
+    <button onclick="logout()">Sign out</button>
+  </div>
+</nav>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- LOGIN PAGE -->
+<div id="page-login" class="page active">
+  <div class="login-wrap">
+    <div class="login-card">
+      <h1>ivy<span style="color:var(--accent)">.</span>homes</h1>
+      <p>Pune's premium property marketplace</p>
+      <div class="error-msg" id="login-error"></div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="demo1@ivy.homes" value="demo1@ivy.homes">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="••••••••" value="b9895dbe7f">
+      </div>
+      <button class="btn" id="login-btn" onclick="doLogin()">Sign In</button>
+      <p style="margin-top:1rem; font-size:0.8rem; color:var(--muted); text-align:center">
+        Demo accounts: demo1, demo2, demo3 @ivy.homes
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- LISTINGS PAGE -->
+<div id="page-listings" class="page">
+  <div class="page-header">
+    <h2>Browse Listings — Pune</h2>
+  </div>
+  <div class="filters">
+    <div class="filter-group">
+      <label>Locality</label>
+      <select id="f-locality" onchange="applyFilters()">
+        <option value="">All</option>
+        <option>aundh</option><option>balewadi</option><option>baner</option>
+        <option>hadapsar</option><option>hinjewadi</option><option>kharadi</option>
+        <option>kothrud</option><option>magarpatta</option><option>viman nagar</option><option>wakad</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Bedrooms</label>
+      <select id="f-bhk" onchange="applyFilters()">
+        <option value="">Any</option>
+        <option value="1">1 BHK</option><option value="2">2 BHK</option>
+        <option value="3">3 BHK</option><option value="4">4 BHK</option><option value="5">5+ BHK</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Min Price</label>
+      <input type="number" id="f-min-price" placeholder="e.g. 5000000" oninput="applyFilters()">
+    </div>
+    <div class="filter-group">
+      <label>Max Price</label>
+      <input type="number" id="f-max-price" placeholder="e.g. 20000000" oninput="applyFilters()">
+    </div>
+    <div class="filter-group">
+      <label>Furnishing</label>
+      <select id="f-furnishing" onchange="applyFilters()">
+        <option value="">Any</option>
+        <option>unfurnished</option><option>semi-furnished</option><option>fully-furnished</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Sort By</label>
+      <select id="f-sort" onchange="applyFilters()">
+        <option value="posted_at-desc">Newest</option>
+        <option value="price-asc">Price: Low-High</option>
+        <option value="price-desc">Price: High-Low</option>
+        <option value="carpet_area-desc">Area: Large-Small</option>
+      </select>
+    </div>
+    <button onclick="resetFilters()">Reset</button>
+  </div>
+  <div class="results-count" id="listings-count"></div>
+  <div class="listings-grid" id="listings-grid"></div>
+  <div class="pagination" id="listings-pagination"></div>
+</div>
+
+<!-- LISTING DETAIL PAGE -->
+<div id="page-detail" class="page">
+  <span class="detail-back" onclick="showPage('listings')">← Back to listings</span>
+  <div id="detail-content"></div>
+</div>
+
+<!-- SAVED PAGE -->
+<div id="page-saved" class="page">
+  <div class="page-header"><h2>Saved Listings</h2></div>
+  <div id="saved-content"></div>
+</div>
+
+<!-- RENTALS PAGE -->
+<div id="page-rentals" class="page">
+  <div class="page-header"><h2>Rentals — Pune</h2></div>
+  <div class="filters">
+    <div class="filter-group">
+      <label>Locality</label>
+      <select id="r-locality" onchange="loadRentals()">
+        <option value="">All</option>
+        <option>baner</option><option>kothrud</option><option>balewadi</option>
+        <option>viman nagar</option><option>hadapsar</option><option>magarpatta</option>
+        <option>kharadi</option><option>hinjewadi</option><option>wakad</option><option>aundh</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Bedrooms</label>
+      <select id="r-bhk" onchange="loadRentals()">
+        <option value="">Any</option>
+        <option value="1">1 BHK</option><option value="2">2 BHK</option>
+        <option value="3">3 BHK</option><option value="4">4 BHK</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Furnishing</label>
+      <select id="r-furnishing" onchange="loadRentals()">
+        <option value="">Any</option>
+        <option>unfurnished</option><option>semi-furnished</option><option>fully-furnished</option>
+      </select>
+    </div>
+  </div>
+  <div class="rentals-grid" id="rentals-grid"></div>
+  <div class="pagination" id="rentals-pagination"></div>
+</div>
+
+<!-- PROJECTS PAGE -->
+<div id="page-projects" class="page">
+  <div class="page-header"><h2>Builder Projects — Pune</h2></div>
+  <div class="projects-grid" id="projects-grid"></div>
+  <div class="pagination" id="projects-pagination"></div>
+</div>
+
+<!-- INSIGHTS PAGE -->
+<div id="page-insights" class="page">
+  <div class="page-header"><h2>Market Insights — Pune</h2></div>
+  <div class="insights-grid" id="insights-stats"></div>
+  <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin-bottom:1.5rem;">
+    <h3 style="font-size:1rem;color:var(--primary);margin-bottom:1rem;">API Documentation Discrepancies Found</h3>
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;">These are places where the live API behaves differently from the documentation.</p>
+    <div class="findings-list" id="insights-findings"></div>
+  </div>
+</div>
+
+<script>
+const API = 'https://solve.ivy.homes';
+const API_KEY = 'IVY26-5993D94E34F4';
+
+let state = {
+  token: null,
+  refreshToken: null,
+  email: null,
+  savedIds: new Set(),
+  listings: [], listingsTotal: 0, listingsPage: 1,
+  filters: {},
+  rentals: [], rentalsPage: 1, rentalsTotal: 0,
+  projects: [], projectsPage: 1, projectsTotal: 0,
+  currentListing: null,
+  tokenExpiry: null
+};
+
+// ===== AUTH =====
+async function apiReq(method, path, body, requireAuth = true) {
+  const headers = { 'X-API-Key': API_KEY, 'Content-Type': 'application/json' };
+  if (requireAuth && state.token) {
+    // Auto-refresh if near expiry
+    if (state.tokenExpiry && Date.now() > state.tokenExpiry - 60000) {
+      await refreshToken();
+    }
+    headers['Authorization'] = `Bearer ${state.token}`;
+  }
+  const resp = await fetch(API + path, {
+    method, headers,
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if (resp.status === 401 && requireAuth && state.refreshToken) {
+    await refreshToken();
+    headers['Authorization'] = `Bearer ${state.token}`;
+    return fetch(API + path, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  }
+  return resp;
+}
+
+async function refreshToken() {
+  try {
+    const resp = await fetch(API + '/auth/refresh', {
+      method: 'POST',
+      headers: { 'X-API-Key': API_KEY, 'Authorization': `Bearer ${state.refreshToken}` }
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      state.token = data.access_token;
+      state.tokenExpiry = Date.now() + (data.expires_in || 900) * 1000;
+      localStorage.setItem('ivy_token', state.token);
+    }
+  } catch (e) { console.error('Refresh failed', e); }
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const btn = document.getElementById('login-btn');
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Signing in...';
+  try {
+    const resp = await fetch(API + '/auth/login', {
+      method: 'POST',
+      headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'Login failed');
+    state.token = data.access_token;
+    state.refreshToken = data.refresh_token;
+    state.email = email;
+    state.tokenExpiry = Date.now() + (data.expires_in || 900) * 1000;
+    localStorage.setItem('ivy_token', state.token);
+    localStorage.setItem('ivy_refresh', state.refreshToken);
+    localStorage.setItem('ivy_email', email);
+    afterLogin();
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+  }
+}
+
+async function logout() {
+  try { await apiReq('POST', '/auth/logout'); } catch(e) {}
+  state.token = null; state.refreshToken = null; state.email = null;
+  localStorage.removeItem('ivy_token');
+  localStorage.removeItem('ivy_refresh');
+  localStorage.removeItem('ivy_email');
+  document.getElementById('nav').style.display = 'none';
+  showPage('login');
+}
+
+function afterLogin() {
+  document.getElementById('nav').style.display = 'flex';
+  document.getElementById('nav-email').textContent = state.email;
+  loadFavourites();
+  showPage('listings');
+  loadListings();
+}
+
+// ===== SESSION PERSISTENCE =====
+(function restoreSession() {
+  const token = localStorage.getItem('ivy_token');
+  const refresh = localStorage.getItem('ivy_refresh');
+  const email = localStorage.getItem('ivy_email');
+  if (token && email) {
+    state.token = token;
+    state.refreshToken = refresh;
+    state.email = email;
+    afterLogin();
+  }
+})();
+
+// ===== PAGES =====
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('[data-page]').forEach(a => a.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  const link = document.querySelector(`[data-page="${name}"]`);
+  if (link) link.classList.add('active');
+  if (name === 'saved') loadSavedPage();
+  if (name === 'rentals') loadRentals();
+  if (name === 'projects') loadProjects();
+  if (name === 'insights') loadInsights();
+  window.history.pushState({page: name}, '', '#' + name);
+}
+
+// ===== LISTINGS =====
+let filteredListings = [];
+let allListingsCache = null;
+const LISTINGS_PER_PAGE = 12;
+
+async function loadListings(page = 1) {
+  state.listingsPage = page;
+  document.getElementById('listings-grid').innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top:1rem">Loading listings…</p></div>';
+  
+  try {
+    const params = new URLSearchParams({ limit: 200, page: 1 });
+    const resp = await apiReq('GET', `/v1/listings?${params}`);
+    if (!resp.ok) throw new Error('Failed to load listings');
+    const data = await resp.json();
+    allListingsCache = data.results || [];
+    
+    // Fetch all pages if needed (since server doesn't filter properly)
+    let total = data.total || 0;
+    let fetched = allListingsCache.length;
+    let pg = 2;
+    while (fetched < total) {
+      const r2 = await apiReq('GET', `/v1/listings?${new URLSearchParams({ limit: 200, page: pg })}`);
+      if (!r2.ok) break;
+      const d2 = await r2.json();
+      allListingsCache.push(...(d2.results || []));
+      fetched += (d2.results || []).length;
+      if (!d2.results || d2.results.length === 0) break;
+      pg++;
+    }
+    
+    // Deduplicate
+    const seen = new Set();
+    allListingsCache = allListingsCache.filter(l => {
+      if (seen.has(l.listing_id)) return false;
+      seen.add(l.listing_id);
+      return true;
+    });
+    
+    applyFilters();
+  } catch(e) {
+    document.getElementById('listings-grid').innerHTML = `<p style="color:red;padding:1rem">${e.message}</p>`;
+  }
+}
+
+function applyFilters() {
+  if (!allListingsCache) return;
+  
+  const locality = document.getElementById('f-locality').value;
+  const bhk = document.getElementById('f-bhk').value;
+  const minPrice = parseInt(document.getElementById('f-min-price').value) || 0;
+  const maxPrice = parseInt(document.getElementById('f-max-price').value) || Infinity;
+  const furnishing = document.getElementById('f-furnishing').value;
+  const sortVal = document.getElementById('f-sort').value;
+  
+  filteredListings = allListingsCache.filter(l => {
+    if (locality && l.locality !== locality) return false;
+    if (bhk && l.bedroom != parseInt(bhk)) return false;
+    if (l.price < minPrice || l.price > maxPrice) return false;
+    if (furnishing && l.furnishing !== furnishing) return false;
+    return true;
+  });
+  
+  // Sort
+  const [sortField, sortOrder] = sortVal.split('-');
+  filteredListings.sort((a, b) => {
+    const va = a[sortField] || 0;
+    const vb = b[sortField] || 0;
+    return sortOrder === 'desc' ? (vb > va ? 1 : -1) : (va > vb ? 1 : -1);
+  });
+  
+  renderListings(1);
+}
+
+function resetFilters() {
+  document.getElementById('f-locality').value = '';
+  document.getElementById('f-bhk').value = '';
+  document.getElementById('f-min-price').value = '';
+  document.getElementById('f-max-price').value = '';
+  document.getElementById('f-furnishing').value = '';
+  document.getElementById('f-sort').value = 'posted_at-desc';
+  applyFilters();
+}
+
+function renderListings(page) {
+  state.listingsPage = page;
+  const start = (page - 1) * LISTINGS_PER_PAGE;
+  const pageItems = filteredListings.slice(start, start + LISTINGS_PER_PAGE);
+  const total = filteredListings.length;
+  
+  document.getElementById('listings-count').textContent = `${total} listing${total !== 1 ? 's' : ''} found`;
+  
+  if (pageItems.length === 0) {
+    document.getElementById('listings-grid').innerHTML = '<div class="empty-state"><div class="icon">🏠</div><p>No listings match your filters</p></div>';
+  } else {
+    document.getElementById('listings-grid').innerHTML = pageItems.map(l => listingCardHtml(l)).join('');
+  }
+  
+  // Pagination
+  const totalPages = Math.ceil(total / LISTINGS_PER_PAGE);
+  let pagHtml = '';
+  if (totalPages > 1) {
+    pagHtml += `<button onclick="renderListings(${page - 1})" ${page === 1 ? 'disabled' : ''}>←</button>`;
+    for (let i = Math.max(1, page - 2); i <= Math.min(totalPages, page + 2); i++) {
+      pagHtml += `<button onclick="renderListings(${i})" class="${i === page ? 'active' : ''}">${i}</button>`;
+    }
+    pagHtml += `<button onclick="renderListings(${page + 1})" ${page === totalPages ? 'disabled' : ''}>→</button>`;
+  }
+  document.getElementById('listings-pagination').innerHTML = pagHtml;
+}
+
+function listingCardHtml(l) {
+  const saved = state.savedIds.has(l.listing_id);
+  const icons = { apartment: '🏢', villa: '🏡', 'independent house': '🏠', plot: '🌳', 'builder floor': '🏗️' };
+  const icon = icons[l.property_type] || '🏠';
+  const price = formatPrice(l.price);
+  const ppsqft = l.carpet_area ? Math.round(l.price / l.carpet_area) : null;
+  return `
+    <div class="listing-card" onclick="showDetail('${l.listing_id}')">
+      <div class="card-img">
+        ${icon}
+        <span class="badge ${l.is_live ? '' : 'inactive'}">${l.is_live ? '✓ Live' : 'Inactive'}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-price">${price}${ppsqft ? ` <span style="font-size:0.75rem;color:var(--muted);font-weight:400">• ₹${ppsqft.toLocaleString('en-IN')}/sqft</span>` : ''}</div>
+        <div class="card-title">${l.apartment_name || 'Property'}</div>
+        <div class="card-meta">
+          <span>📍 ${l.locality}</span>
+          <span>🛏 ${l.bedroom} BHK</span>
+          <span>📐 ${l.carpet_area} sqft</span>
+          ${l.furnishing ? `<span>🪑 ${l.furnishing}</span>` : ''}
+        </div>
+      </div>
+      <div class="card-actions" onclick="event.stopPropagation()">
+        <button class="${saved ? 'saved' : ''}" onclick="toggleSave('${l.listing_id}', this)">${saved ? '♥ Saved' : '♡ Save'}</button>
+        <button onclick="showDetail('${l.listing_id}')">View details →</button>
+      </div>
+    </div>`;
+}
+
+// ===== DETAIL =====
+async function showDetail(id) {
+  showPage('detail');
+  document.getElementById('detail-content').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  try {
+    const resp = await apiReq('GET', `/v1/listings/${id}`);
+    if (!resp.ok) throw new Error('Listing not found');
+    const l = await resp.json();
+    state.currentListing = l;
+    const saved = state.savedIds.has(l.listing_id);
+    const icons = { apartment: '🏢', villa: '🏡', 'independent house': '🏠', plot: '🌳', 'builder floor': '🏗️' };
+    const ppsqft = l.carpet_area ? Math.round(l.price / l.carpet_area) : null;
+    
+    document.getElementById('detail-content').innerHTML = `
+      <div class="detail-hero">
+        <div>
+          <div class="price">${formatPrice(l.price)}</div>
+          <div class="address">📍 ${l.apartment_name}, ${l.locality}, Pune</div>
+          <div style="margin-top:0.5rem;opacity:0.7;font-size:0.85rem">
+            ${l.bedroom} BHK • ${l.carpet_area} sqft carpet area • ${l.property_type}
+            ${l.is_live ? ' • <span style="color:#4ade80">● Live</span>' : ''}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem;align-items:flex-end">
+          <button onclick="toggleSave('${l.listing_id}', this)" id="detail-save-btn" class="${saved ? 'saved' : ''}" style="${saved ? 'background:var(--muted)' : ''}">${saved ? '♥ Saved' : '♡ Save'}</button>
+          ${l.posted_by_contact ? `<a href="tel:${l.posted_by_contact}" style="color:#fff;font-size:0.85rem;opacity:0.85">📞 ${l.posted_by_contact}</a>` : ''}
+        </div>
+      </div>
+      <div class="detail-grid">
+        <div>
+          <div class="detail-section">
+            <h3>Property Details</h3>
+            <div class="detail-specs">
+              <div class="detail-spec"><div class="label">Bedrooms</div><div class="value">${l.bedroom}</div></div>
+              <div class="detail-spec"><div class="label">Bathrooms</div><div class="value">${l.bathroom}</div></div>
+              <div class="detail-spec"><div class="label">Carpet Area</div><div class="value">${l.carpet_area} sqft</div></div>
+              <div class="detail-spec"><div class="label">Super Built-up</div><div class="value">${l.super_built_up_area || '—'} sqft</div></div>
+              <div class="detail-spec"><div class="label">Floor</div><div class="value">${l.floor || '—'} / ${l.total_floors || '—'}</div></div>
+              <div class="detail-spec"><div class="label">Furnishing</div><div class="value">${l.furnishing || '—'}</div></div>
+              <div class="detail-spec"><div class="label">Facing</div><div class="value">${l.facing_direction || '—'}</div></div>
+              <div class="detail-spec"><div class="label">Parking</div><div class="value">${l.covered_parking}</div></div>
+              ${ppsqft ? `<div class="detail-spec"><div class="label">Price/sqft</div><div class="value">₹${ppsqft.toLocaleString('en-IN')}</div></div>` : ''}
+              <div class="detail-spec"><div class="label">Balconies</div><div class="value">${l.balcony}</div></div>
+            </div>
+          </div>
+          ${l.description ? `<div class="detail-section"><h3>Description</h3><p style="font-size:0.9rem;line-height:1.6;color:var(--muted)">${l.description}</p></div>` : ''}
+          <div class="detail-section">
+            <h3>Seller Information</h3>
+            <div style="font-size:0.9rem">
+              <div><strong>${l.posted_by_name || 'Unknown'}</strong> (${l.posted_by})</div>
+              ${l.posted_by_contact ? `<div style="margin-top:0.25rem;color:var(--muted)">📞 ${l.posted_by_contact}</div>` : ''}
+              ${l.is_verified ? '<div style="color:var(--success);margin-top:0.25rem">✓ Verified by Ivy Homes</div>' : ''}
+              <div style="color:var(--muted);margin-top:0.25rem;font-size:0.82rem">Listed on ${new Date(l.posted_at).toLocaleDateString('en-IN', {day:'numeric',month:'long',year:'numeric'})} via ${l.website}</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="detail-section">
+            <h3>Similar Listings</h3>
+            <div id="similar-section"><div class="loading"><div class="spinner"></div></div></div>
+          </div>
+        </div>
+      </div>`;
+    
+    // Load similar (from cached listings)
+    const similar = (allListingsCache || []).filter(x =>
+      x.listing_id !== l.listing_id &&
+      x.locality === l.locality &&
+      x.bedroom === l.bedroom &&
+      Math.abs(x.price - l.price) / l.price < 0.2
+    ).slice(0, 5);
+    
+    document.getElementById('similar-section').innerHTML = similar.length
+      ? `<div class="similar-cards">${similar.map(s => `
+          <div class="similar-card" onclick="showDetail('${s.listing_id}')">
+            <div class="s-price">${formatPrice(s.price)}</div>
+            <div class="s-meta">${s.apartment_name} • ${s.bedroom} BHK • ${s.carpet_area} sqft</div>
+          </div>`).join('')}</div>`
+      : '<p style="color:var(--muted);font-size:0.85rem">No similar listings found</p>';
+      
+  } catch(e) {
+    document.getElementById('detail-content').innerHTML = `<p style="color:red;padding:1rem">${e.message}</p>`;
+  }
+}
+
+// ===== FAVOURITES =====
+async function loadFavourites() {
+  try {
+    const resp = await apiReq('GET', '/v1/favourites');
+    if (resp.ok) {
+      const data = await resp.json();
+      const results = data.results || data;
+      state.savedIds = new Set((Array.isArray(results) ? results : []).map(l => l.listing_id));
+    }
+  } catch(e) { /* ignore */ }
+}
+
+async function toggleSave(id, btn) {
+  const isSaved = state.savedIds.has(id);
+  try {
+    if (isSaved) {
+      const resp = await apiReq('DELETE', `/v1/favourites/${id}`);
+      if (resp.ok || resp.status === 404) {
+        state.savedIds.delete(id);
+        if (btn) { btn.textContent = '♡ Save'; btn.classList.remove('saved'); }
+        showToast('Removed from saved', 'success');
+      }
+    } else {
+      const resp = await apiReq('POST', '/v1/favourites', { id });
+      if (resp.ok || resp.status === 201) {
+        state.savedIds.add(id);
+        if (btn) { btn.textContent = '♥ Saved'; btn.classList.add('saved'); }
+        showToast('Saved!', 'success');
+      }
+    }
+  } catch(e) {
+    showToast('Error saving listing', 'error');
+  }
+}
+
+function loadSavedPage() {
+  const saved = (allListingsCache || []).filter(l => state.savedIds.has(l.listing_id));
+  const el = document.getElementById('saved-content');
+  if (saved.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">♡</div><p>No saved listings yet. Browse and save properties you like!</p></div>';
+  } else {
+    el.innerHTML = `<div class="listings-grid">${saved.map(l => listingCardHtml(l)).join('')}</div>`;
+  }
+}
+
+// ===== RENTALS =====
+let allRentalsCache = null;
+const RENTALS_PER_PAGE = 12;
+let filteredRentals = [];
+
+async function loadRentals() {
+  if (!allRentalsCache) {
+    document.getElementById('rentals-grid').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+    try {
+      let all = [];
+      let page = 1;
+      let total = null;
+      while (true) {
+        const resp = await apiReq('GET', `/v1/rentals?limit=200&page=${page}`);
+        if (!resp.ok) break;
+        const data = await resp.json();
+        if (total === null) total = data.total || 0;
+        all.push(...(data.results || []));
+        if (all.length >= total || !data.results || data.results.length === 0) break;
+        page++;
+      }
+      // Deduplicate
+      const seen = new Set();
+      allRentalsCache = all.filter(r => {
+        if (seen.has(r.listing_id)) return false;
+        seen.add(r.listing_id);
+        return true;
+      });
+    } catch(e) {
+      document.getElementById('rentals-grid').innerHTML = `<p style="color:red">${e.message}</p>`;
+      return;
+    }
+  }
+  
+  const locality = document.getElementById('r-locality').value;
+  const bhk = document.getElementById('r-bhk').value;
+  const furnishing = document.getElementById('r-furnishing').value;
+  
+  filteredRentals = allRentalsCache.filter(r => {
+    if (locality && r.locality !== locality) return false;
+    if (bhk && r.bedroom != parseInt(bhk)) return false;
+    if (furnishing && r.furnishing !== furnishing) return false;
+    return true;
+  });
+  
+  renderRentals(1);
+}
+
+function renderRentals(page) {
+  state.rentalsPage = page;
+  const start = (page - 1) * RENTALS_PER_PAGE;
+  const items = filteredRentals.slice(start, start + RENTALS_PER_PAGE);
+  
+  document.getElementById('rentals-grid').innerHTML = items.map(r => `
+    <div class="rental-card">
+      <div class="rent">₹${r.price.toLocaleString('en-IN')}/mo</div>
+      <div class="rent-meta">Deposit: ₹${(r.deposit || 0).toLocaleString('en-IN')} • Maintenance: ₹${(r.maintenance || 0).toLocaleString('en-IN')}/mo</div>
+      <h4>${r.apartment_name || r.title || 'Rental'}</h4>
+      <div class="card-meta" style="margin-top:0.4rem">
+        <span>📍 ${r.locality}</span>
+        <span>🛏 ${r.bedroom} BHK</span>
+        <span>📐 ${r.carpet_area} sqft</span>
+        <span>🪑 ${r.furnishing}</span>
+      </div>
+      ${r.posted_by_contact ? `<div style="margin-top:0.75rem;font-size:0.82rem;color:var(--muted)">📞 ${r.posted_by_contact}</div>` : ''}
+    </div>`).join('');
+  
+  const totalPages = Math.ceil(filteredRentals.length / RENTALS_PER_PAGE);
+  document.getElementById('rentals-pagination').innerHTML = totalPages > 1 ? `
+    <button onclick="renderRentals(${page-1})" ${page===1?'disabled':''}>←</button>
+    <span style="padding:0.4rem 0.8rem">${page} / ${totalPages}</span>
+    <button onclick="renderRentals(${page+1})" ${page===totalPages?'disabled':''}>→</button>` : '';
+}
+
+// ===== PROJECTS =====
+let allProjectsCache = null;
+const PROJECTS_PER_PAGE = 12;
+
+async function loadProjects() {
+  if (!allProjectsCache) {
+    document.getElementById('projects-grid').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+    try {
+      let all = [];
+      let page = 1;
+      let total = null;
+      while (true) {
+        const resp = await apiReq('GET', `/v1/projects?limit=200&page=${page}`);
+        if (!resp.ok) break;
+        const data = await resp.json();
+        if (total === null) total = data.total || 0;
+        all.push(...(data.results || []));
+        if (all.length >= total || !data.results || data.results.length === 0) break;
+        page++;
+      }
+      const seen = new Set();
+      allProjectsCache = all.filter(p => {
+        if (seen.has(p.project_id)) return false;
+        seen.add(p.project_id);
+        return true;
+      });
+    } catch(e) {
+      document.getElementById('projects-grid').innerHTML = `<p style="color:red">${e.message}</p>`;
+      return;
+    }
+  }
+  renderProjects(1);
+}
+
+function renderProjects(page) {
+  const start = (page - 1) * PROJECTS_PER_PAGE;
+  const items = allProjectsCache.slice(start, start + PROJECTS_PER_PAGE);
+  
+  const statusClass = s => s?.includes('under') ? 'under' : s?.includes('new') ? 'new' : 'ready';
+  
+  document.getElementById('projects-grid').innerHTML = items.map(p => {
+    // Project prices are in lakhs - convert to display
+    const priceMin = p.price_min ? `₹${p.price_min}L` : '—';
+    const priceMax = p.price_max ? `₹${Math.max(p.price_min || 0, p.price_max || 0)}L` : '—';
+    return `
+    <div class="project-card">
+      <span class="project-status ${statusClass(p.project_status)}">${p.project_status}</span>
+      <h4>${p.apartment_name}</h4>
+      <div style="font-size:0.82rem;color:var(--muted)">${p.developer_name} • ${p.locality}</div>
+      <div class="proj-price">${priceMin} – ${priceMax} <span style="font-size:0.75rem;font-weight:400;color:var(--muted)">(in lakhs)</span></div>
+      <div class="spec-row">
+        <span>🏗 ${p.total_units} units</span>
+        <span>🏢 ${p.total_towers} towers</span>
+        <span>📐 ${p.min_area_sqft}–${p.max_area_sqft} sqft</span>
+      </div>
+      <div class="spec-row">
+        <span>📋 RERA: ${p.rera_number}</span>
+      </div>
+      ${p.amenities?.length ? `<div style="margin-top:0.5rem;font-size:0.78rem;color:var(--muted)">${p.amenities.slice(0,4).join(' • ')}</div>` : ''}
+    </div>`;
+  }).join('');
+  
+  const totalPages = Math.ceil(allProjectsCache.length / PROJECTS_PER_PAGE);
+  document.getElementById('projects-pagination').innerHTML = totalPages > 1 ? `
+    <button onclick="renderProjects(${page-1})" ${page===1?'disabled':''}>←</button>
+    <span style="padding:0.4rem 0.8rem">${page} / ${totalPages}</span>
+    <button onclick="renderProjects(${page+1})" ${page===totalPages?'disabled':''}>→</button>` : '';
+}
+
+// ===== INSIGHTS =====
+function loadInsights() {
+  const listings = allListingsCache || [];
+  const rentals = allRentalsCache || [];
+  const projects = allProjectsCache || [];
+  
+  const active = listings.filter(l => l.is_live);
+  const prices = listings.filter(l => l.price).map(l => l.price);
+  const medPrice = prices.length ? prices.sort((a,b)=>a-b)[Math.floor(prices.length/2)] : 0;
+  const baner = rentals.filter(r => r.locality === 'baner');
+  const banerRent = baner.reduce((s,r) => s + (r.price||0), 0);
+  
+  document.getElementById('insights-stats').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Total Listings</div>
+      <div class="stat-value">${listings.length.toLocaleString()}</div>
+      <div class="stat-sub">Records incl. duplicates</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Active (is_live)</div>
+      <div class="stat-value">${active.length.toLocaleString()}</div>
+      <div class="stat-sub">${listings.length ? Math.round(active.length/listings.length*100) : 0}% of all records</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Median Price</div>
+      <div class="stat-value">${formatPrice(medPrice)}</div>
+      <div class="stat-sub">Across all listings</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Baner Rental Sum</div>
+      <div class="stat-value">₹${(banerRent/100000).toFixed(1)}L</div>
+      <div class="stat-sub">${baner.length} rentals in Baner</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Rentals</div>
+      <div class="stat-value">${rentals.length.toLocaleString()}</div>
+      <div class="stat-sub">Unique rental listings</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Projects</div>
+      <div class="stat-value">${projects.length.toLocaleString()}</div>
+      <div class="stat-sub">Builder projects in Pune</div>
+    </div>`;
+  
+  const findings = [
+    { tag: 'auth', title: 'API key must be in X-API-Key header', desc: 'Docs say append as query param ?api_key=..., but API returns 401 with message "send your key in the X-API-Key request header, not as a query parameter".' },
+    { tag: 'auth', title: 'Token field name mismatch', desc: 'Docs say login returns {"token": "..."}, but actual response uses {"access_token": "...", "refresh_token": "..."}.' },
+    { tag: 'auth', title: 'Token expires in 900 seconds, not 86400', desc: 'Docs say expires_in: 86400 (24 hours). Actual response shows expires_in: 900 (15 minutes). Also, a refresh_url and refresh endpoint exist, undocumented.' },
+    { tag: 'units', title: 'Project prices in lakhs, not rupees', desc: 'Docs say "price_min and price_max are in rupees". Actual values like 97.8 represent ₹97.8 lakhs = ₹9,780,000. Listing prices are correctly in rupees.' },
+    { tag: 'dup', title: 'Massive listing duplication', desc: 'API returns 3,650 listing records but only 50 unique listing_ids. Each unique listing appears exactly 73 times with identical data. Docs say "every listing_id is globally unique".' },
+    { tag: 'missing', title: '/v1/listing/{id} singular path returns 404', desc: 'Docs document GET /v1/listing/{listing_id} (singular). The actual working path is GET /v1/listings/{listing_id} (plural).' },
+    { tag: 'missing', title: '/v1/listings/{id}/similar returns 404', desc: 'Documented endpoint for similar listings does not exist at this path.' },
+    { tag: 'missing', title: '/v1/analytics/summary returns 404', desc: 'The analytics summary endpoint documented does not exist. Returns 404 Not Found.' },
+    { tag: 'filter', title: 'Price filter does not filter', desc: 'Sending min_price/max_price parameters returns listings outside the specified range. The filter is accepted but silently ignored.' },
+    { tag: 'pagination', title: 'Response uses offset-based pagination, not page-based', desc: 'Docs show {"total", "page", "page_size", "results"}. Actual response uses {"total", "limit", "offset", "count", "has_more", "results"}. The "page" parameter does work but response fields differ.' },
+    { tag: 'data', title: 'Corrupt listings: impossible area for bedroom count', desc: '6 listings have physically impossible combinations (e.g., 2BHK with 73 sqft carpet area, plot marked as fully-furnished). All are from website=magichomes.' },
+    { tag: 'data', title: 'Project price_min/price_max swapped for 36 projects', desc: '36 of 50 projects have price_min > price_max, which is impossible. The fields appear to be swapped for these projects.' },
+  ];
+  
+  document.getElementById('insights-findings').innerHTML = findings.map(f => `
+    <div class="finding">
+      <div class="finding-title"><span class="tag ${f.tag}">${f.tag}</span>${f.title}</div>
+      <div class="finding-desc">${f.desc}</div>
+    </div>`).join('');
+}
+
+// ===== UTILS =====
+function formatPrice(p) {
+  if (!p) return '₹—';
+  if (p >= 10000000) return `₹${(p/10000000).toFixed(2)} Cr`;
+  if (p >= 100000) return `₹${(p/100000).toFixed(1)} L`;
+  return `₹${p.toLocaleString('en-IN')}`;
+}
+
+function showToast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast ${type} show`;
+  setTimeout(() => el.className = 'toast', 2500);
+}
+
+// Handle browser back
+window.addEventListener('popstate', e => {
+  const page = e.state?.page || 'listings';
+  if (state.token) showPage(page);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "total_listing_records": 3650,
+  "unique_properties": 50,
+  "active_listings": 2920,
+  "corrupt_listing_ids": [
+    "MAG-3001035",
+    "MAG-3001327",
+    "MAG-3001519",
+    "MAG-3001756",
+    "MAG-3002851",
+    "MAG-3003434"
+  ],
+  "total_monthly_rent": 3295600,
+  "avg_price_per_sqft_2bhk": 10789.96,
+  "costliest_project": {
+    "project_id": "P30015",
+    "price_max_inr": 9780000
+  },
+  "listings_last_7_days": 73,
+  "fake_listing_ids": [
+    "ZER-3001479"
+  ],
+  "projects_with_wrong_listing_count": 47
+}

@@ -1,0 +1,223 @@
+[
+  {
+    "endpoint": "*",
+    "category": "auth",
+    "documented": "API key passed as query parameter ?api_key=IVY26-...",
+    "actual": "Requests with query parameter return 401 Unauthorized with detail 'send your key in the X-API-Key request header, not as a query parameter'. API key must be sent in X-API-Key header.",
+    "how_found": "Sent initial GET request to /v1/listings with api_key query param and inspected the 401 error response message.",
+    "impact": "High. All API calls fail if following the query parameter convention in documentation.",
+    "evidence": []
+  },
+  {
+    "endpoint": "/auth/login",
+    "category": "auth",
+    "documented": "Returns token key with 24 hours expiry (expires_in: 86400) and user object with name and email.",
+    "actual": "Returns access_token and refresh_token instead of token. expires_in is 900 seconds (15 minutes). User object contains only email (no name field).",
+    "how_found": "Called POST /auth/login with demo1@ivy.homes and inspected JSON response payload.",
+    "impact": "High. Authentication clients looking for 'token' key or assuming 24h validity without refresh fail after 15 minutes.",
+    "evidence": []
+  },
+  {
+    "endpoint": "/auth/refresh",
+    "category": "undocumented_endpoint",
+    "documented": "Documentation states 'Tokens are valid for 24 hours... There is no refresh flow.'",
+    "actual": "POST /auth/refresh exists and accepts Authorization: Bearer <refresh_token> along with X-API-Key header to return a new access_token.",
+    "how_found": "Inspected refresh_url field returned from /auth/login and tested POST /auth/refresh.",
+    "impact": "Medium. Enables long-running frontend sessions without forcing users to re-enter credentials every 15 minutes.",
+    "evidence": []
+  },
+  {
+    "endpoint": "/v1/listings",
+    "category": "auth",
+    "documented": "Listings endpoint only documented to require API key query parameter.",
+    "actual": "Requires both X-API-Key header and Authorization: Bearer <access_token> header from user login. Unauthenticated requests return 401.",
+    "how_found": "Tested GET /v1/listings with only X-API-Key header and received 'missing bearer token - log in at POST /auth/login first'.",
+    "impact": "High. Public browsing of listings without user authentication is not permitted by the API.",
+    "evidence": []
+  },
+  {
+    "endpoint": "*",
+    "category": "pagination",
+    "documented": "Collection responses are shaped with {'total': 1240, 'page': 1, 'page_size': 20, 'results': [...]}.",
+    "actual": "Responses return {'limit': 20, 'offset': 0, 'count': 20, 'total': 3650, 'has_more': true, 'results': [...]}. Fields 'page' and 'page_size' are absent.",
+    "how_found": "Examined JSON response envelope structure from /v1/listings and /v1/rentals.",
+    "impact": "Medium. Frontend pagination code expecting page and page_size properties will fail to parse pagination metadata.",
+    "evidence": []
+  },
+  {
+    "endpoint": "/v1/listings",
+    "category": "completeness",
+    "documented": "Returns active sale listings in your city. Inactive, expired and withdrawn listings are excluded server side.",
+    "actual": "Endpoint returns both active (is_live=true) and inactive (is_live=false) listings. Inactive listings must be filtered client-side.",
+    "how_found": "Analyzed is_live field distribution across all 3,650 listing records, finding 730 inactive records.",
+    "impact": "High. Inactive listings would be mistakenly shown to buyers without client-side is_live filtering.",
+    "evidence": [
+      "100-3000516",
+      "100-3003797",
+      "DWE-3000860",
+      "DWE-3002501",
+      "DWE-3002738",
+      "MAG-3000293",
+      "MAG-3001178",
+      "MAG-3001814",
+      "SQU-3001541",
+      "SQU-3002040",
+      "SQU-3002128",
+      "SQU-3002794"
+    ]
+  },
+  {
+    "endpoint": "/v1/listings",
+    "category": "duplicates",
+    "documented": "Every listing_id is globally unique, and each listing corresponds to exactly one physical property.",
+    "actual": "API returns 3,650 records composed of exactly 50 unique listing_ids, each duplicated exactly 73 times with identical attributes.",
+    "how_found": "Fetched all 3,650 records and counted occurrences per listing_id.",
+    "impact": "High. Un-deduplicated feeds display 73 copies of each property to users and skew aggregate statistics.",
+    "evidence": [
+      "100-3000129",
+      "100-3000344",
+      "100-3000516",
+      "100-3000777",
+      "DWE-3000557",
+      "DWE-3000693",
+      "MAG-3000293",
+      "MAG-3000623",
+      "SQU-3001514",
+      "SQU-3001541",
+      "ZER-3000589",
+      "ZER-3000908"
+    ]
+  },
+  {
+    "endpoint": "/v1/listings",
+    "category": "filters",
+    "documented": "Supports min_price and max_price query parameters to filter listings within price range inclusive in rupees.",
+    "actual": "min_price and max_price query parameters are accepted by the server but quietly ignored; response contains records outside the requested price range.",
+    "how_found": "Queried /v1/listings?min_price=10000000&max_price=11000000 and received listings priced at 4.14M, 7.21M, 16.56M, etc.",
+    "impact": "High. Budget filters must be executed client-side on retrieved listings.",
+    "evidence": [
+      "DWE-3002501",
+      "SQU-3001712",
+      "MAG-3001756",
+      "ZER-3001479"
+    ]
+  },
+  {
+    "endpoint": "/v1/listing/{id}",
+    "category": "missing_endpoint",
+    "documented": "GET /v1/listing/{listing_id} (singular) returns a single listing object.",
+    "actual": "GET /v1/listing/{listing_id} returns 404 Not Found. The working endpoint is GET /v1/listings/{listing_id} (plural).",
+    "how_found": "Attempted GET on singular path /v1/listing/100-3000129 (got 404) vs plural path /v1/listings/100-3000129 (got 200).",
+    "impact": "High. Direct listing detail links fail unless plural path is used.",
+    "evidence": [
+      "100-3000129",
+      "DWE-3000557",
+      "MAG-3000293",
+      "ZER-3000589"
+    ]
+  },
+  {
+    "endpoint": "/v1/listings/{id}/similar",
+    "category": "missing_endpoint",
+    "documented": "GET /v1/listings/{listing_id}/similar returns up to 10 comparable listings.",
+    "actual": "GET /v1/listings/{listing_id}/similar returns 404 Not Found for all valid listing IDs.",
+    "how_found": "Called /v1/listings/{id}/similar for multiple retrievable listing IDs and received 404.",
+    "impact": "Medium. Similar listings feature must be computed client-side based on locality, BHK, and price proximity.",
+    "evidence": [
+      "100-3000129",
+      "DWE-3000557",
+      "MAG-3000293",
+      "ZER-3000589"
+    ]
+  },
+  {
+    "endpoint": "/v1/analytics/summary",
+    "category": "missing_endpoint",
+    "documented": "GET /v1/analytics/summary returns pre-computed aggregates for city dashboard.",
+    "actual": "GET /v1/analytics/summary returns 404 Not Found.",
+    "how_found": "Called GET /v1/analytics/summary and received 404 Not Found response.",
+    "impact": "Medium. Insights screen aggregates must be computed client-side from listings, rentals, and projects data.",
+    "evidence": []
+  },
+  {
+    "endpoint": "/v1/projects",
+    "category": "units",
+    "documented": "price_min and price_max are in Indian rupees integer everywhere in API.",
+    "actual": "Projects price_min and price_max are expressed in Lakhs INR (float) rather than raw Rupees (e.g., 97.8 represents \u20b997.8 Lakhs = \u20b99,780,000).",
+    "how_found": "Compared project price ranges (1.2 to 97.8) against actual apartment listing prices in the same projects (4M to 21M INR).",
+    "impact": "High. Displaying project prices as raw rupees would show luxury projects priced under \u20b9100.",
+    "evidence": [
+      "P30001",
+      "P30013",
+      "P30015",
+      "P30019",
+      "P30041",
+      "P30046"
+    ]
+  },
+  {
+    "endpoint": "/v1/projects",
+    "category": "data_quality",
+    "documented": "price_min represents minimum project price and price_max represents maximum project price.",
+    "actual": "For 36 out of 50 projects, price_min is greater than price_max (values are swapped, e.g. P30001 has min=80.0, max=3.22).",
+    "how_found": "Iterated through all unique project records and compared price_min > price_max.",
+    "impact": "Medium. Client applications must use min(price_min, price_max) and max(price_min, price_max) for accurate pricing.",
+    "evidence": [
+      "P30001",
+      "P30002",
+      "P30003",
+      "P30004",
+      "P30005",
+      "P30006",
+      "P30007",
+      "P30046"
+    ]
+  },
+  {
+    "endpoint": "/v1/projects",
+    "category": "consistency",
+    "documented": "total_listings always agrees with what GET /v1/listings?project_id=... returns.",
+    "actual": "For 47 of 50 projects, total_listings disagrees with actual listings mapped to that project_id.",
+    "how_found": "Counted unique listings linked to each project_id vs project.total_listings attribute.",
+    "impact": "Medium. Project inventory counts cannot be trusted from total_listings field directly.",
+    "evidence": [
+      "P30001",
+      "P30002",
+      "P30003",
+      "P30004",
+      "P30005",
+      "P30006",
+      "P30007",
+      "P30013",
+      "P30020",
+      "P30027"
+    ]
+  },
+  {
+    "endpoint": "/v1/listings",
+    "category": "data_quality",
+    "documented": "Listings contain accurate structural property attributes (carpet_area, property_type, furnishing, bedrooms).",
+    "actual": "6 listings contain physically impossible data: residential units with impossible carpet areas (e.g. 73 sqft for 2BHK house, 110 sqft for 3BHK) or vacant plots marked as fully/semi-furnished with modular kitchens.",
+    "how_found": "Validated BHK vs carpet_area ratios and checked furnishing on plot property types.",
+    "impact": "High. Corrupted records must be flagged or sanitized before calculating pricing aggregates.",
+    "evidence": [
+      "MAG-3001035",
+      "MAG-3001327",
+      "MAG-3001519",
+      "MAG-3001756",
+      "MAG-3002851",
+      "MAG-3003434"
+    ]
+  },
+  {
+    "endpoint": "/v1/listings",
+    "category": "fraud",
+    "documented": "is_verified means operations team checked the listing; listings represent genuine property sales.",
+    "actual": "Listing ZER-3001479 is a fraudulent lead-generation bait listing advertising an underpriced Kharadi 4BHK and soliciting upfront non-refundable tokens ('Pay a token amount of Rs 25,000 today to block the unit').",
+    "how_found": "Performed text analysis on descriptions combined with price-per-sqft outlier detection across Pune localities.",
+    "impact": "High. Fraudulent listings can lead users to scams if not detected and filtered.",
+    "evidence": [
+      "ZER-3001479"
+    ]
+  }
+]
